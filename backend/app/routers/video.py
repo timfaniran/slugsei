@@ -1,4 +1,3 @@
-# app/routers/video.py
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from ..config import get_videos_bucket, firestore_client, BUCKET_NAME
 from uuid import uuid4

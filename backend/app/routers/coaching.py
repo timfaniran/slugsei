@@ -1,4 +1,3 @@
-# app/routers/coaching.py
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from ..services.coaching_service import generate_coaching_feedback
