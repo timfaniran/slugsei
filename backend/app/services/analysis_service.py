@@ -3,6 +3,8 @@ import cv2
 import mediapipe as mp
 from google.cloud import storage, firestore
 from ..config import get_videos_bucket, firestore_client
+from be.trackBall import track_baseball
+from be.ballMotion import analyze_ball_motion
 
 mp_pose = mp.solutions.pose
 
@@ -25,8 +27,19 @@ def analyze_video(video_id: str):
         blob.download_to_filename(temp_video.name)
         local_video_path = temp_video.name
 
-    # 3. Extract pose and compute metrics
-    analysis_results = run_pose_estimation(local_video_path)
+    # 3. Track baseball and analyze ball motion
+    positions_file = track_baseball(local_video_path)
+    if not positions_file:
+        raise ValueError("Error processing video for ball tracking.")
+
+    launch_angle, exit_velocity = analyze_ball_motion(positions_file)
+    if launch_angle is None or exit_velocity is None:
+        raise ValueError("Error analyzing ball motion.")
+
+    analysis_results = {
+        "launch_angle": launch_angle,
+        "exit_velocity": exit_velocity
+    }
 
     # 4. Save analysis results in Firestore
     doc_ref.update({"analysis_results": analysis_results})

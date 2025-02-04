@@ -3,6 +3,10 @@ from ..config import get_videos_bucket, firestore_client, BUCKET_NAME
 from uuid import uuid4
 from google.cloud.firestore import SERVER_TIMESTAMP
 from google.api_core.exceptions import GoogleAPICallError
+from be.trackBall import track_baseball
+from be.ballMotion import analyze_ball_motion
+import os
+from ..services.analysis_service import analyze_video
 
 router = APIRouter()
 
@@ -45,7 +49,25 @@ async def upload_video(file: UploadFile = File(...)):
         })
 
         video_url = f"https://storage.googleapis.com/{BUCKET_NAME}/{final_name}"
-        return {"video_id": video_id, "status": "uploaded", "video_url": video_url}
+
+        # Save the video locally for processing
+        local_video_path = f"temp_videos/{final_name}"
+        os.makedirs("temp_videos", exist_ok=True)
+        with open(local_video_path, "wb") as local_file:
+            local_file.write(file.file.read())
+
+        # Process the video to analyze it
+        analysis_results = analyze_video(video_id)
+        if not analysis_results:
+            raise HTTPException(status_code=500, detail="Error processing video for analysis.")
+
+        return {
+            "video_id": video_id,
+            "status": "processed",
+            "video_url": video_url,
+            "launch_angle": analysis_results["launch_angle"],
+            "exit_velocity": analysis_results["exit_velocity"]
+        }
 
     except GoogleAPICallError as e:
         raise HTTPException(status_code=500, detail=f"Firestore error: {str(e)}")
