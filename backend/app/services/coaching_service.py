@@ -3,25 +3,28 @@ from google.cloud import firestore
 from ..config import firestore_client
 
 def generate_coaching_feedback(video_id: str):
-    # 1. Retrieve analysis from Firestore
     doc_ref = firestore_client.collection("videos").document(video_id)
     doc = doc_ref.get()
-    if not doc.exists:
+    if not doc.exists():
         raise ValueError(f"No video found for ID: {video_id}")
-    data = doc.to_dict()
 
+    data = doc.to_dict()
     analysis = data.get("analysis_results")
     if not analysis:
-        raise ValueError(f"No analysis results for video ID: {video_id}")
+        raise ValueError(f"No analysis results available for video ID: {video_id}")
 
-    # 2. Formulate prompt with analysis data
-    prompt = f"""
-    The user has a baseball swing video with the following analysis: {analysis}.
-    Provide feedback focusing on angles and posture to improve batting form.
-    Also, highlight any major issues or tips.
-    """
+    launch_angle = analysis["launch_angle"]
+    exit_velocity = analysis["exit_velocity"]
 
-    # 3. Call LLM
-    response = f"This is a stubbed response interpreting {analysis}. (Replace with LLM API call)"
+    # Generate feedback based on thresholds
+    if launch_angle < 10:
+        feedback = "Your launch angle is too low. Try adjusting your swing to create a better upward trajectory."
+    elif launch_angle > 40:
+        feedback = "Your launch angle is too high, reducing exit velocity. Try a flatter swing."
+    else:
+        feedback = "Your launch angle is optimal. Keep working on consistency!"
 
-    return response
+    if exit_velocity < 50:
+        feedback += " Also, focus on generating more power through your legs and core."
+
+    return feedback

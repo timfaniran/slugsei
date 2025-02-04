@@ -3,86 +3,80 @@ import cv2
 import mediapipe as mp
 from google.cloud import storage, firestore
 from ..config import get_videos_bucket, firestore_client
-from be.trackBall import track_baseball
-from be.ballMotion import analyze_ball_motion
+from app.trackBall import track_baseball
+from app.ballMotion import analyze_ball_motion
+import threading
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 
 mp_pose = mp.solutions.pose
 
+
 def analyze_video(video_id: str):
-    # 1. Fetch video metadata from Firestore
-    doc_ref = firestore_client.collection("videos").document(video_id)
-    doc = doc_ref.get()
-    if not doc.exists:
-        raise ValueError(f"No video found for ID: {video_id}")
+    try:
+        # 1. Fetch video metadata from Firestore
+        doc_ref = firestore_client.collection("videos").document(video_id)
+        doc = doc_ref.get()
 
-    data = doc.to_dict()
-    bucket_name = data["bucket"]
-    file_name = data["file_name"]
+        if not doc.exists:
+            raise ValueError(f"No video found for ID: {video_id}")
 
-    # 2. Download video to a temp file
-    bucket = get_videos_bucket(bucket_name)
-    blob = bucket.blob(file_name)
+        data = doc.to_dict()
+        bucket_name = data.get("bucket")
+        file_name = data.get("file_name")
 
-    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video:
-        blob.download_to_filename(temp_video.name)
-        local_video_path = temp_video.name
+        if not bucket_name or not file_name:
+            raise ValueError(f"Invalid metadata for video ID: {video_id}")
 
-    # 3. Track baseball and analyze ball motion
-    positions_file = track_baseball(local_video_path)
-    if not positions_file:
-        raise ValueError("Error processing video for ball tracking.")
+        # 2. Download video to a temporary file
+        bucket = get_videos_bucket(bucket_name)
+        blob = bucket.blob(file_name)
 
-    launch_angle, exit_velocity = analyze_ball_motion(positions_file)
-    if launch_angle is None or exit_velocity is None:
-        raise ValueError("Error analyzing ball motion.")
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video:
+            blob.download_to_filename(temp_video.name)
+            local_video_path = temp_video.name
 
-    analysis_results = {
-        "launch_angle": launch_angle,
-        "exit_velocity": exit_velocity
-    }
+        # 3. Track baseball and analyze ball motion
+        positions_file = track_baseball(local_video_path)
 
-    # 4. Save analysis results in Firestore
-    doc_ref.update({"analysis_results": analysis_results})
+        if not positions_file:
+            raise ValueError("Error processing video for ball tracking: No positions file generated.")
 
-    return analysis_results
+        # Read ball positions from the file
+        ball_positions = []
+        try:
+            with open(positions_file, "r") as f:
+                for line in f:
+                    parts = line.strip().split(",")
+                    if len(parts) == 2:
+                        try:
+                            x, y = float(parts[0]), float(parts[1])
+                            ball_positions.append((x, y))
+                        except ValueError:
+                            print(f"Skipping invalid line: {line.strip()}")
+        except FileNotFoundError:
+            raise ValueError("Positions file not found after processing.")
 
+        if not ball_positions:
+            raise ValueError("No valid ball positions found in tracking output.")
 
-def run_pose_estimation(video_path: str):
-    pose = mp_pose.Pose(static_image_mode=False, 
-                        model_complexity=2,
-                        enable_segmentation=False,
-                        min_detection_confidence=0.5,
-                        min_tracking_confidence=0.5)
+        # 4. Analyze ball motion using the list of tuples
+        launch_angle, exit_velocity = analyze_ball_motion(ball_positions)
 
-    cap = cv2.VideoCapture(video_path)
-    results = []
-    frame_count = 0
+        if launch_angle is None or exit_velocity is None:
+            raise ValueError("Ball motion analysis failed.")
 
-    while cap.isOpened():
-        success, frame = cap.read()
-        if not success:
-            break
+        analysis_results = {
+            "launch_angle": launch_angle,
+            "exit_velocity": exit_velocity
+        }
 
-        # Optionally downsample for speed
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        pose_result = pose.process(frame_rgb)
+        # 5. Save analysis results in Firestore
+        doc_ref.update({"analysis_results": analysis_results, "status": "completed"})
 
-        if pose_result.pose_landmarks:
-            # Example: track joint angles, etc.
-            landmarks = pose_result.pose_landmarks.landmark
-            # Calculate metrics (e.g., angles, velocity, etc.)
-            # For MVP, we might store just a few key points
-            # ...
-            results.append({
-                "frame": frame_count,
-                "landmarks": [ { "x": lm.x, "y": lm.y, "z": lm.z } for lm in landmarks ]
-            })
+        return analysis_results
 
-        frame_count += 1
-
-    cap.release()
-    pose.close()
-
-    # A placeholder summary: perhaps average angles or velocity
-    summary_metrics = {"frame_count": frame_count, "key_frames_analyzed": len(results)}
-    return summary_metrics
+    except Exception as e:
+        doc_ref.update({"status": "failed"})
+        raise ValueError(f"Error analyzing video: {str(e)}")
