@@ -19,7 +19,7 @@ def process_video(request: AnalysisRequest):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@router.get("/analysis/{video_id}")
+@router.get("/{video_id}")
 def get_analysis(video_id: str):
     """Fetch analysis results."""
     doc_ref = firestore_client.collection("videos").document(video_id)
