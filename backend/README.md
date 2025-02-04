@@ -29,8 +29,7 @@
     cd backend
     uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
     ```
-
-    This should make you be able to access the APIs at: http://127.0.0.1:8080/docs
+    - ✅ This should make you be able to access the APIs at: http://127.0.0.1:8080/docs
 
 5. **Upload a Test Video**
     ```bash
@@ -38,16 +37,29 @@
      -H "Content-Type: multipart/form-data" \
      -F "file=@/path/to/sample.mp4"
     ```
-    T
+    - ✅ This will upload a sample video
 
 6. **Run Video Analysis**
     ```bash
-    curl -X POST "http://127.0.0.1:8080/analyze_video" \
+    curl -X POST "http://127.0.0.1:8080/analysis" \
      -H "Content-Type: application/json" \
      -d '{"video_id": "your_test_video_id"}'
     ```
     This will:
-    ✅ Download the video
-    ✅ Track baseball movement
-    ✅ Analyze ball motion
-    ✅ Store results in Firestore
+    - ✅ Download the video
+    - ✅ Track baseball movement
+    - ✅ Analyze ball motion
+    - ✅ Store results in Firestore
+
+7. **Get Coaching Feedback**
+    ```bash
+    curl -X 'POST' \
+    'http://127.0.0.1:8080/coaching/feedback' \
+    -H 'accept: application/json' \
+    -H 'Content-Type: application/json' \
+    -d '{
+    "video_id": "your_test_video_id"
+    }'
+    ```
+    This will:
+    - ✅ Give coaching feedback based on the analysis of the uploaded video.
