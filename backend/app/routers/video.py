@@ -3,21 +3,26 @@ from ..config import get_videos_bucket, firestore_client, BUCKET_NAME
 from uuid import uuid4
 from google.cloud.firestore import SERVER_TIMESTAMP
 from google.api_core.exceptions import GoogleAPICallError
-from ..trackBall import track_baseball
-from ..ballMotion import analyze_ball_motion
-import os
 from ..services.analysis_service import analyze_video
+import os
 
 router = APIRouter()
 
-ALLOWED_MIME_TYPES = {"video/mp4", "video/mov", "video/avi", "video/mkv"}
+ALLOWED_MIME_TYPES = {"video/mp4", "video/mov", "video/avi", "video/mkv", "application/octet-stream"}
 
 @router.post("/upload")
 async def upload_video(file: UploadFile = File(...)):
+    # Print the MIME type for debugging
+    print(f"Detected MIME type: {file.content_type}")
 
     # Validate MIME type
     if file.content_type not in ALLOWED_MIME_TYPES:
         raise HTTPException(status_code=400, detail="Invalid file type. Only videos are allowed.")
+
+    # Determine the actual content type to use
+    actual_content_type = file.content_type
+    if file.content_type == "application/octet-stream":
+        actual_content_type = "video/mp4"  # Set to a default video MIME type
 
     # Generate unique filename
     video_id = str(uuid4())
@@ -30,14 +35,14 @@ async def upload_video(file: UploadFile = File(...)):
         blob = bucket.blob(final_name)
 
         # Prevent overwriting existing videos
-        if blob.exists():
+        if (blob.exists()):
             raise HTTPException(status_code=409, detail="A video with this ID already exists.")
 
         # Reset file pointer (important)
         file.file.seek(0)
 
         # Upload file to GCS
-        blob.upload_from_file(file.file, content_type=file.content_type)
+        blob.upload_from_file(file.file, content_type=actual_content_type)
 
         # Save metadata in Firestore
         doc_ref = firestore_client.collection("videos").document(video_id)
@@ -56,7 +61,7 @@ async def upload_video(file: UploadFile = File(...)):
         with open(local_video_path, "wb") as local_file:
             local_file.write(file.file.read())
 
-        # Process the video to analyze it
+        # Process the video to analyze it using advancedTracker
         analysis_results = analyze_video(video_id)
         if not analysis_results:
             raise HTTPException(status_code=500, detail="Error processing video for analysis.")
