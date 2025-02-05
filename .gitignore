@@ -6,6 +6,7 @@ venv/
 *.pyo
 .git
 .env
+frontend/node_modules
 
 # Logs
 logs
