@@ -18,8 +18,8 @@
 
 3. **Upload a Test Video**
     ```bash
-    curl -X POST "http://127.0.0.1:8080/upload_video" \
-     -H "Content-Type: multipart/form-data" \
+    curl -X POST "http://127.0.0.1:8080/upload_video" 
+     -H "Content-Type: multipart/form-data" 
      -F "file=@/path/to/sample.mp4"
     ```
     - ✅ Upload a sample video
@@ -32,10 +32,10 @@
 
 5. **Get Coaching Feedback**
     ```bash
-    curl -X 'POST' \
-    'http://127.0.0.1:8080/coaching/feedback' \
-    -H 'accept: application/json' \
-    -H 'Content-Type: application/json' \
+    curl -X 'POST' 
+    'http://127.0.0.1:8080/coaching/feedback' 
+    -H 'accept: application/json' 
+    -H 'Content-Type: application/json' 
     -d '{
     "video_id": "your_test_video_id"
     }'

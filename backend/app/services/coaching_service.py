@@ -30,7 +30,7 @@ def generate_coaching_feedback(video_id: str):
     You will provide **scientific and resource-backed feedback** based on reference materials like **MLB guidelines, biomechanics research, and professional coaching techniques**.
 
     ### Player Analysis:
-    - **Launch Angle**: {launch_angle}° (Recommended: 10°-30° for line drives & home runs)
+    - **Launch Angle**: {launch_angle}° (Recommended: 20°-35° for line drives & home runs)
     - **Exit Velocity**: {exit_velocity} mph (Higher is better for power hitters)
 
     ### Your Task:
