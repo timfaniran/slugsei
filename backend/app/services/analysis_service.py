@@ -3,84 +3,59 @@ import cv2
 import mediapipe as mp
 from google.cloud import storage, firestore
 from ..config import get_videos_bucket, firestore_client
-from ..advancedTracker import BaseballTracker  # Updated import
+from ..advancedTracker import BaseballTracker
+import threading
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 
 mp_pose = mp.solutions.pose
 
 def analyze_video(video_id: str):
-    # 1. Fetch video metadata from Firestore
-    doc_ref = firestore_client.collection("videos").document(video_id)
-    doc = doc_ref.get()
-    if not doc.exists:
-        raise ValueError(f"No video found for ID: {video_id}")
+    try:
+        doc_ref = firestore_client.collection("videos").document(video_id)
+        doc = doc_ref.get()
 
-    data = doc.to_dict()
-    bucket_name = data["bucket"]
-    file_name = data["file_name"]
+        if not doc.exists():
+            raise ValueError(f"No video found for ID: {video_id}")
 
-    # 2. Download video to a temp file
-    bucket = get_videos_bucket(bucket_name)
-    blob = bucket.blob(file_name)
+        data = doc.to_dict()
+        bucket_name = data.get("bucket")
+        file_name = data.get("file_name")
 
-    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video:
-        blob.download_to_filename(temp_video.name)
-        local_video_path = temp_video.name
+        if not bucket_name or not file_name:
+            raise ValueError(f"Invalid metadata for video ID: {video_id}")
 
-    # 3. Track baseball and analyze ball motion using advancedTracker
-    tracker = BaseballTracker(local_video_path)
-    results, _ = tracker.track_baseball()
-    launch_angle = results['launch_angle']
-    exit_velocity = results['exit_velocity']
-    if launch_angle is None or exit_velocity is None:
-        raise ValueError("Error analyzing ball motion.")
+        bucket = get_videos_bucket(bucket_name)
+        blob = bucket.blob(file_name)
 
-    analysis_results = {
-        "launch_angle": launch_angle,
-        "exit_velocity": exit_velocity
-    }
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_video:
+            blob.download_to_filename(temp_video.name)
+            local_video_path = temp_video.name
 
-    # 4. Save analysis results in Firestore
-    doc_ref.update({"analysis_results": analysis_results})
+        # Track baseball and analyze ball motion using advancedTracker
+        tracker = BaseballTracker(local_video_path)
+        results, _ = tracker.track_baseball()
+        launch_angle = results['launch_angle']
+        exit_velocity = results['exit_velocity']
+        if launch_angle is None or exit_velocity is None:
+            raise ValueError("Error analyzing ball motion.")
 
-    return analysis_results
+        analysis_results = {
+            "launch_angle": launch_angle,
+            "exit_velocity": exit_velocity
+        }
 
+        doc_ref.update({"analysis_results": analysis_results, "status": "completed"})
 
-def run_pose_estimation(video_path: str):
-    pose = mp_pose.Pose(static_image_mode=False, 
-                        model_complexity=2,
-                        enable_segmentation=False,
-                        min_detection_confidence=0.5,
-                        min_tracking_confidence=0.5)
+        return analysis_results
 
-    cap = cv2.VideoCapture(video_path)
-    results = []
-    frame_count = 0
+    except Exception as e:
+        doc_ref.update({"status": "failed"})
+        raise ValueError(f"Error analyzing video: {str(e)}")
 
-    while cap.isOpened():
-        success, frame = cap.read()
-        if not success:
-            break
+def analyze_video_background(video_id: str):
+    thread = threading.Thread(target=analyze_video, args=(video_id,))
+    thread.start()
+    return thread
 
-        # Optionally downsample for speed
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        pose_result = pose.process(frame_rgb)
-
-        if pose_result.pose_landmarks:
-            # Example: track joint angles, etc.
-            landmarks = pose_result.pose_landmarks.landmark
-            # Calculate metrics (e.g., angles, velocity, etc.)
-            # For MVP, we might store just a few key points
-            # ...
-            results.append({
-                "frame": frame_count,
-                "landmarks": [ { "x": lm.x, "y": lm.y, "z": lm.z } for lm in landmarks ]
-            })
-
-        frame_count += 1
-
-    cap.release()
-    pose.close()
-
-    # A placeholder summary: perhaps average angles or velocity
-    summary_metrics = {"frame_count": frame_count, "key_frames_analyzed": len(results)}
-    return summary_metrics

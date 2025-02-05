@@ -1,15 +1,23 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-from .trackBall import track_baseball  
+from .trackBall import track_baseball   
 
 def parabola(x, a, b, c):
     return a * x**2 + b * x + c
 
 def analyze_ball_motion(ball_positions, fps=30, pixel_to_feet_ratio=0.02):
-    if len(ball_positions) < 5:
-        print("Not enough data points to analyze launch angle and velocity.")
-        return None, None
+    # if len(ball_positions) < 5:
+    #     print("Not enough data points to analyze launch angle and velocity.")
+    #     return None, None
+
+    if not ball_positions:
+        raise ValueError("Error: ball_positions is empty.")
+
+    print("DEBUG: ball_positions content:", ball_positions)
+
+    if not isinstance(ball_positions, list) or not all(isinstance(pos, tuple) and len(pos) == 2 for pos in ball_positions):
+        raise TypeError(f"Expected a list of (x, y) tuples, but got: {ball_positions}")
 
     x_vals = np.array([pos[0] for pos in ball_positions])
     y_vals = np.array([pos[1] for pos in ball_positions])
