@@ -14,13 +14,13 @@ const AboutSection = () => {
       gap={{ xs: 6, md: 10 }}
       sx={{
         backgroundColor: '#f4f4f4',
-        borderRadius: '16px', // Rounded section edges
-        boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.1)', // Subtle shadow for depth
-        overflow: 'hidden', // Prevent content overflow
+        borderRadius: '16px',
+        boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.1)',
+        overflow: 'hidden',
         textAlign: 'center',
       }}
     >
-      
+      {/* Left Text Content */}
       <Box
         flex={{ xs: 1, md: 0.6 }}
         sx={{
@@ -28,7 +28,7 @@ const AboutSection = () => {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          pl: { xs: 0, md: 5 }, // Add padding to the left for desktop
+          pl: { xs: 0, md: 5 },
         }}
       >
         <Typography
@@ -47,17 +47,16 @@ const AboutSection = () => {
           sx={{
             color: '#555',
             mb: 5,
-            fontSize: '1.5rem', 
+            fontSize: '1.5rem',
             lineHeight: 1.8,
           }}
         >
           Upload your baseball videos effortlessly and let our advanced AI algorithms provide you with comprehensive analysis. Receive personalized feedback to enhance your skills and transform your game.
         </Typography>
-        {/* Stats */}
         <Box display="flex" justifyContent={{ xs: 'center', md: 'flex-start' }} gap={8}>
           <Box textAlign="center">
             <Typography
-              variant="h4" 
+              variant="h4"
               sx={{
                 fontWeight: 'bold',
                 color: '#2E3A59',
@@ -66,10 +65,7 @@ const AboutSection = () => {
             >
               100 %
             </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: '#777', fontSize: '1.2rem' }}
-            >
+            <Typography variant="body2" sx={{ color: '#777', fontSize: '1.2rem' }}>
               User satisfaction rate with our AI analysis.
             </Typography>
           </Box>
@@ -84,10 +80,7 @@ const AboutSection = () => {
             >
               5000 videos
             </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: '#777', fontSize: '1.2rem' }}
-            >
+            <Typography variant="body2" sx={{ color: '#777', fontSize: '1.2rem' }}>
               Videos analyzed monthly by our platform.
             </Typography>
           </Box>
@@ -101,7 +94,6 @@ const AboutSection = () => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          pr: { xs: 0, md: 9 }, 
         }}
       >
         <img
@@ -111,7 +103,7 @@ const AboutSection = () => {
             width: '100%',
             maxWidth: '520px',
             borderRadius: '12px',
-            boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.1)', // Image shadow
+            boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.1)',
           }}
         />
       </Box>
