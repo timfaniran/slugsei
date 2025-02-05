@@ -3,7 +3,7 @@ import cv2
 import mediapipe as mp
 from google.cloud import storage, firestore
 from ..config import get_videos_bucket, firestore_client
-from ..advancedTracker import BaseballTracker
+from .advancedTracker import BaseballTracker
 import threading
 import matplotlib.pyplot as plt
 import matplotlib

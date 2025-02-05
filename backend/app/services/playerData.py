@@ -1,15 +1,16 @@
 import csv
+import os
 
 class PlayerData:
-    def __init__(self, csv_file_path):
-        self.csv_file_path = csv_file_path
+    def __init__(self, filePath):
+        self.filePath = filePath
         self.players_data = self._load_data()
 
     def _load_data(self):
         players_data = {}
-        with open(self.csv_file_path, mode='r') as file:
-            csv_reader = csv.DictReader(file)
-            for row in csv_reader:
+        with open(self.filePath, mode='r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
                 player_id = row['play_id']
                 players_data[player_id] = {
                     'title': row['title'],
@@ -26,7 +27,8 @@ class PlayerData:
     def get_all_players(self):
         return self.players_data
 
-# Example 
-player_service = PlayerData('/workspaces/google-cloud-mlb/backend/datasets/2024-mlb-homeruns.csv')
-player_data = player_service.get_player_data('148e943b-10db-4d71-943d-ead3b36bebbc')
-print(player_data)
+if __name__ == "__main__":
+    filePath = os.path.join(os.path.dirname(__file__), '../../datasets/2024-mlb-homeruns.csv')
+    player_service = PlayerData(filePath)
+    player_data = player_service.get_player_data('148e943b-10db-4d71-943d-ead3b36bebbc')
+    print(player_data)

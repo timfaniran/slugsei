@@ -2,8 +2,13 @@ import os
 import google.generativeai as genai
 from google.cloud import firestore
 from ..config import firestore_client
+from .playerData import PlayerData
 
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+# Load player data
+filePath = os.path.join(os.path.dirname(__file__), '../../datasets/2024-mlb-homeruns.csv')
+player_service = PlayerData(filePath)
 
 def generate_coaching_feedback(video_id: str):
 
@@ -25,6 +30,31 @@ def generate_coaching_feedback(video_id: str):
     if launch_angle is None or exit_velocity is None:
         raise ValueError(f"Incomplete analysis data for video ID: {video_id}")
 
+    # Find a relatively close matching player from the dataset
+    closest_match = None
+    smallest_diff = float('inf')
+    for player_id, player_data in player_service.get_all_players().items():
+        try:
+            launch_angle_diff = abs(float(player_data['LaunchAngle']) - launch_angle)
+            exit_velocity_diff = abs(float(player_data['ExitVelocity']) - exit_velocity)
+            total_diff = launch_angle_diff + exit_velocity_diff
+
+            if total_diff < smallest_diff:
+                smallest_diff = total_diff
+                closest_match = player_data
+        except ValueError:
+            # Skip players with invalid data
+            continue
+
+    if closest_match:
+        player_reference = f"Your performance is similar to {closest_match['title']}."
+        player_video = closest_match['video']
+        outstanding_features = f"Launch Angle: {closest_match['LaunchAngle']}°, Exit Velocity: {closest_match['ExitVelocity']} mph"
+    else:
+        player_reference = "No close match found in the dataset."
+        player_video = ""
+        outstanding_features = ""
+
     prompt = f"""
     You are a professional baseball coach specializing in advanced swing mechanics and player development.
     You will provide **scientific and resource-backed feedback** based on reference materials like **MLB guidelines, biomechanics research, and professional coaching techniques**.
@@ -32,6 +62,9 @@ def generate_coaching_feedback(video_id: str):
     ### Player Analysis:
     - **Launch Angle**: {launch_angle}° (Recommended: 20°-35° for line drives & home runs)
     - **Exit Velocity**: {exit_velocity} mph (Higher is better for power hitters)
+    - **Reference Player**: {player_reference}
+    - **Reference Player Video**: {player_video}
+    - **Outstanding Features**: {outstanding_features}
 
     ### Your Task:
     Provide detailed feedback on **how to improve** using references from **biomechanics studies, pro player case studies, and scientific analysis**.
@@ -75,7 +108,10 @@ def generate_coaching_feedback(video_id: str):
         else:
             fallback_feedback += "- Your exit velocity is strong! Maintain good mechanics to ensure consistent results.\n"
 
-        fallback_feedback += "\n- **Track your metrics using tools like Rapsodo or Statcast and work on incremental improvements.**\n"
+        fallback_feedback += f"\n- **Track your metrics using tools like Rapsodo or Statcast and work on incremental improvements.**\n"
+        fallback_feedback += f"\n- **{player_reference}**\n"
+        fallback_feedback += f"\n- **Reference Player Video**: {player_video}\n"
+        fallback_feedback += f"\n- **Outstanding Features**: {outstanding_features}\n"
 
         return {
             "video_id": video_id,
