@@ -41,9 +41,9 @@ const SlugSeiPage = () => {
 
   const handleSendMessage = () => {
     if (inputMessage.trim()) {
-      setChatMessages((prev) => [...prev, { sender: 'User', message: inputMessage }]);
       setChatMessages((prev) => [
         ...prev,
+        { sender: 'User', message: inputMessage },
         { sender: 'AI', message: "That's great! Let's dive deeper into your game stats." },
       ]);
       setInputMessage('');
@@ -62,7 +62,7 @@ const SlugSeiPage = () => {
           flexDirection: 'row',
           gap: 4,
           px: 4,
-          py: 3, // Reduced padding
+          py: 3,
           backgroundColor: '#F4F4F4',
           height: 'calc(100vh - 80px)', // Adjust height considering the header
           overflow: 'auto',
@@ -73,7 +73,7 @@ const SlugSeiPage = () => {
           sx={{
             flex: 2,
             backgroundColor: '#D1E8FF',
-            padding: '1.5rem', // Reduced padding
+            padding: '1.5rem',
             borderRadius: '16px',
             display: 'flex',
             flexDirection: 'column',
@@ -140,15 +140,16 @@ const SlugSeiPage = () => {
           sx={{
             flex: 1,
             backgroundColor: '#FFE5D9',
-            padding: '1.5rem', // Reduced padding
+            padding: '1.5rem',
             borderRadius: '16px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
-            height: '100%',
+            height: '90%',
           }}
         >
+          {/* Chat Bubbles */}
           <Box
             sx={{
               flex: 1,
@@ -161,19 +162,39 @@ const SlugSeiPage = () => {
             }}
           >
             {chatMessages.map((msg, idx) => (
-              <Typography
+              <Box
                 key={idx}
-                align={msg.sender === 'AI' ? 'left' : 'right'}
                 sx={{
-                  margin: '0.5rem 0',
-                  color: msg.sender === 'AI' ? '#333' : '#BA0C2F',
-                  fontWeight: msg.sender === 'AI' ? 'normal' : 'bold',
+                  display: 'flex',
+                  justifyContent: msg.sender === 'AI' ? 'flex-start' : 'flex-end',
+                  marginBottom: '1rem',
                 }}
               >
-                {msg.sender}: {msg.message}
-              </Typography>
+                <Box
+                  sx={{
+                    maxWidth: '60%',
+                    backgroundColor: msg.sender === 'AI' ? '#E0F7FA' : '#BA0C2F',
+                    color: msg.sender === 'AI' ? '#333' : '#FFFFFF',
+                    padding: '0.8rem 1rem',
+                    borderRadius: msg.sender === 'AI' ? '16px 16px 16px 0px' : '16px 16px 0px 16px',
+                    boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
+                  }}
+                >
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontFamily: "'Roboto', sans-serif",
+                      fontSize: '1rem',
+                    }}
+                  >
+                    {msg.message}
+                  </Typography>
+                </Box>
+              </Box>
             ))}
           </Box>
+
+          {/* Input Section */}
           <Box sx={{ display: 'flex', gap: 1 }}>
             <TextField
               variant="outlined"
@@ -181,6 +202,7 @@ const SlugSeiPage = () => {
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               placeholder="Type your message..."
+              sx={{ backgroundColor: '#FFFFFF', borderRadius: '8px' }}
             />
             <Button
               variant="contained"
