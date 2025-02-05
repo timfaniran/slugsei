@@ -38,12 +38,4 @@ def get_analysis(video_id: str):
         "video_id": video_id,
         "status": data.get("status", "unknown"),
         "analysis": analysis
-    }
-
-@router.post("/analysis")
-async def analyze_video_endpoint(video_id: str):
-    try:
-        analyze_video_background(video_id)
-        return {"status": "processing", "video_id": video_id}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    } 
