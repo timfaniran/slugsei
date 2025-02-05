@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Button } from '@mui/material';
 import analysisImage from '../assets/aboutsection-student.png'; // Replace with your image path
 
 const AboutSection = () => {
@@ -14,9 +14,9 @@ const AboutSection = () => {
       gap={{ xs: 6, md: 10 }}
       sx={{
         backgroundColor: '#f4f4f4',
-        borderRadius: '16px',
-        boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.1)',
-        overflow: 'hidden',
+        borderRadius: '16px', // Rounded section edges
+        boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.1)', // Subtle shadow for depth
+        overflow: 'hidden', // Prevent content overflow
         textAlign: 'center',
       }}
     >
@@ -28,7 +28,7 @@ const AboutSection = () => {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          pl: { xs: 0, md: 5 },
+          pl: { xs: 0, md: 5 }, // Add padding to the left for desktop
         }}
       >
         <Typography
@@ -53,6 +53,7 @@ const AboutSection = () => {
         >
           Upload your baseball videos effortlessly and let our advanced AI algorithms provide you with comprehensive analysis. Receive personalized feedback to enhance your skills and transform your game.
         </Typography>
+        {/* Stats */}
         <Box display="flex" justifyContent={{ xs: 'center', md: 'flex-start' }} gap={8}>
           <Box textAlign="center">
             <Typography
@@ -65,7 +66,10 @@ const AboutSection = () => {
             >
               100 %
             </Typography>
-            <Typography variant="body2" sx={{ color: '#777', fontSize: '1.2rem' }}>
+            <Typography
+              variant="body2"
+              sx={{ color: '#777', fontSize: '1.2rem' }}
+            >
               User satisfaction rate with our AI analysis.
             </Typography>
           </Box>
@@ -80,10 +84,34 @@ const AboutSection = () => {
             >
               5000 videos
             </Typography>
-            <Typography variant="body2" sx={{ color: '#777', fontSize: '1.2rem' }}>
+            <Typography
+              variant="body2"
+              sx={{ color: '#777', fontSize: '1.2rem' }}
+            >
               Videos analyzed monthly by our platform.
             </Typography>
           </Box>
+        </Box>
+        <Box sx={{ mt: 4, display: 'flex', justifyContent: { xs: 'center', md: 'flex-start' } }}>
+          <Button
+        variant="contained"
+        href='/baseball-ai'
+        sx={{
+          backgroundColor: '#BA0C2F',
+          // padding: isMobile ? '2% 3%' : '1% 1.5%',
+          // fontSize: isMobile ? '0.8em' : '1em',
+          borderRadius: '3rem',
+          height: '4rem',
+          width: '10rem',
+          '&:hover': {
+            backgroundColor: '#A11222',
+            fontcolor: '#FFFFFF',
+          },
+          mt: 4,
+        }}
+      >
+        Try SlugSei
+      </Button>
         </Box>
       </Box>
 
@@ -94,6 +122,7 @@ const AboutSection = () => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
+          pr: { xs: 0, md: 9 },
         }}
       >
         <img
@@ -103,7 +132,7 @@ const AboutSection = () => {
             width: '100%',
             maxWidth: '520px',
             borderRadius: '12px',
-            boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0px 4px 16px rgba(0, 0, 0, 0.1)', // Image shadow
           }}
         />
       </Box>
