@@ -3,8 +3,8 @@ from ..config import get_videos_bucket, firestore_client, BUCKET_NAME
 from uuid import uuid4
 from google.cloud.firestore import SERVER_TIMESTAMP
 from google.api_core.exceptions import GoogleAPICallError
-from be.trackBall import track_baseball
-from be.ballMotion import analyze_ball_motion
+from ..trackBall import track_baseball
+from ..ballMotion import analyze_ball_motion
 import os
 from ..services.analysis_service import analyze_video
 

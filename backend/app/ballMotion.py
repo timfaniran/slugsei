@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-from trackBall import track_baseball  
+from .trackBall import track_baseball  
 
 def parabola(x, a, b, c):
     return a * x**2 + b * x + c

@@ -3,8 +3,8 @@ import cv2
 import mediapipe as mp
 from google.cloud import storage, firestore
 from ..config import get_videos_bucket, firestore_client
-from be.trackBall import track_baseball
-from be.ballMotion import analyze_ball_motion
+from ..trackBall import track_baseball
+from ..ballMotion import analyze_ball_motion
 
 mp_pose = mp.solutions.pose
 

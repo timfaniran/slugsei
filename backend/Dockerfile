@@ -12,6 +12,8 @@ COPY requirements.txt .
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN apt-get update && apt-get install -y libgl1-mesa-glx
+
 # Set environment variables (Avoid storing credentials inside ENV)
 # ENV GOOGLE_APPLICATION_CREDENTIALS="/app/service-account.json"
 
