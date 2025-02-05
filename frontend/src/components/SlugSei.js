@@ -18,6 +18,7 @@ const buttonStyles = {
 
 const SlugSeiPage = () => {
   const [video, setVideo] = useState(null); // State for uploaded video
+  const [showStats, setShowStats] = useState(false); // State to control stats visibility
   const [chatMessages, setChatMessages] = useState([
     { sender: 'AI', message: 'Welcome! How can I assist you with your baseball coaching today?' },
   ]);
@@ -28,6 +29,13 @@ const SlugSeiPage = () => {
     if (file) {
       const videoURL = URL.createObjectURL(file);
       setVideo(videoURL);
+      setShowStats(false); // Reset stats visibility on new upload
+    }
+  };
+
+  const handleAnalyzeVideo = () => {
+    if (video) {
+      setShowStats(true);
     }
   };
 
@@ -54,7 +62,7 @@ const SlugSeiPage = () => {
           flexDirection: 'row',
           gap: 4,
           px: 4,
-          py: 6,
+          py: 3, // Reduced padding
           backgroundColor: '#F4F4F4',
           height: 'calc(100vh - 80px)', // Adjust height considering the header
           overflow: 'auto',
@@ -65,7 +73,7 @@ const SlugSeiPage = () => {
           sx={{
             flex: 2,
             backgroundColor: '#D1E8FF',
-            padding: '2rem',
+            padding: '1.5rem', // Reduced padding
             borderRadius: '16px',
             display: 'flex',
             flexDirection: 'column',
@@ -102,19 +110,29 @@ const SlugSeiPage = () => {
               </Typography>
             </Box>
           )}
-          <Button
-            variant="contained"
-            component="label"
-            sx={{ mt: 3, ...buttonStyles }}
-          >
-            Upload Video
-            <input
-              type="file"
-              accept="video/*"
-              hidden
-              onChange={handleVideoUpload}
-            />
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+            <Button
+              variant="contained"
+              component="label"
+              sx={buttonStyles}
+            >
+              Upload Video
+              <input
+                type="file"
+                accept="video/*"
+                hidden
+                onChange={handleVideoUpload}
+              />
+            </Button>
+            <Button
+              variant="contained"
+              sx={buttonStyles}
+              onClick={handleAnalyzeVideo}
+              disabled={!video}
+            >
+              Analyze Video
+            </Button>
+          </Box>
         </Box>
 
         {/* AI Assistant Coaching Chatbot */}
@@ -122,7 +140,7 @@ const SlugSeiPage = () => {
           sx={{
             flex: 1,
             backgroundColor: '#FFE5D9',
-            padding: '2rem',
+            padding: '1.5rem', // Reduced padding
             borderRadius: '16px',
             display: 'flex',
             flexDirection: 'column',
@@ -176,39 +194,41 @@ const SlugSeiPage = () => {
       </Box>
 
       {/* Stat Analyze Section */}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          px: 4,
-          py: 4,
-          gap: 4,
-        }}
-      >
-        {[1, 2, 3].map((_, idx) => (
-          <Card
-            key={idx}
-            sx={{
-              flex: 1,
-              backgroundColor: '#FEE8D4',
-              padding: '1.5rem',
-              borderRadius: '12px',
-              textAlign: 'center',
-              boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            <Typography
-              variant="h6"
+      {showStats && (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            px: 4,
+            py: 4,
+            gap: 4,
+          }}
+        >
+          {[1, 2, 3].map((_, idx) => (
+            <Card
+              key={idx}
               sx={{
-                fontFamily: "'Roboto', sans-serif",
-                fontWeight: 'bold',
+                flex: 1,
+                backgroundColor: '#FEE8D4',
+                padding: '1.5rem',
+                borderRadius: '12px',
+                textAlign: 'center',
+                boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
               }}
             >
-              Stat Analyze
-            </Typography>
-          </Card>
-        ))}
-      </Box>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontFamily: "'Roboto', sans-serif",
+                  fontWeight: 'bold',
+                }}
+              >
+                Stat Analyze
+              </Typography>
+            </Card>
+          ))}
+        </Box>
+      )}
     </>
   );
 };
