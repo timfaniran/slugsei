@@ -11,7 +11,7 @@ router = APIRouter()
 ALLOWED_MIME_TYPES = {"video/mp4", "video/mov", "video/avi", "video/mkv", "application/octet-stream"}
 
 @router.post("/upload")
-async def upload_video(file: UploadFile = File(...), background_tasks: BackgroundTasks):
+async def upload_video(background_tasks: BackgroundTasks, file: UploadFile = File(...)):
     print(f"Detected MIME type: {file.content_type}") 
 
     if file.content_type not in ALLOWED_MIME_TYPES:

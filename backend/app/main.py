@@ -1,7 +1,7 @@
 import os
 import uvicorn
 from fastapi import FastAPI
-from app.routers import video, analysis, coaching
+from .routers import video, analysis, coaching
 
 def create_app() -> FastAPI:
     app = FastAPI(title="Slugger Sensei: Virtual Baseball Coach Backend")

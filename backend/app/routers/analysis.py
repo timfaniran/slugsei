@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from ..services.analysis_service import analyze_video
+from ..services.analysis_service import analyze_video, analyze_video_background
 from google.cloud import firestore
 
 firestore_client = firestore.Client()
@@ -39,3 +39,11 @@ def get_analysis(video_id: str):
         "status": data.get("status", "unknown"),
         "analysis": analysis
     }
+
+@router.post("/analysis")
+async def analyze_video_endpoint(video_id: str):
+    try:
+        analyze_video_background(video_id)
+        return {"status": "processing", "video_id": video_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

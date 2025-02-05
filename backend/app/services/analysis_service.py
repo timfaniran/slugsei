@@ -16,7 +16,7 @@ def analyze_video(video_id: str):
         doc_ref = firestore_client.collection("videos").document(video_id)
         doc = doc_ref.get()
 
-        if not doc.exists():
+        if not doc.exists:
             raise ValueError(f"No video found for ID: {video_id}")
 
         data = doc.to_dict()
