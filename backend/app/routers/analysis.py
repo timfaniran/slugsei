@@ -1,5 +1,6 @@
 import sys
 import os
+import logging
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from fastapi import APIRouter, HTTPException
@@ -39,29 +40,48 @@ def ask_ai(request: QuestionRequest):
         raise HTTPException(status_code=500, detail=f"Error processing question: {str(e)}")
 
 @router.post("/process")
-def process_video(request: AnalysisRequest):
+async def process_video(request: AnalysisRequest):
     """Processes the video and generates feedback."""
     try:
+        doc_ref = firestore_client.collection("videos").document(request.video_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Video not found")
+            
+        data = doc.to_dict()
+        if data.get("status") == "failed":
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Previous analysis failed: {data.get('error', 'Unknown error')}"
+            )
+
         result = analyze_video(request.video_id)
         
         if not result:
-            raise HTTPException(status_code=404, detail="No analysis data found.")
+            raise HTTPException(status_code=404, detail="No analysis data found")
 
         launch_angle = float(result.get("launch_angle", 0))
         exit_velocity = float(result.get("exit_velocity", 0))
         
-        images = generate_and_upload_images(
-            video_id=request.video_id,
-            launch_angle=launch_angle,
-            exit_velocity=exit_velocity
-        )
-
+        try:
+            images = generate_and_upload_images(
+                video_id=request.video_id,
+                launch_angle=launch_angle,
+                exit_velocity=exit_velocity
+            )
+        except Exception as img_error:
+            logging.error(f"Error generating images: {str(img_error)}")
+            images = {}   
         return {
             "video_id": request.video_id,
             "analysis": result,
             "images": images
         }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        logging.error(f"Error in process_video: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error processing video: {str(e)}")
 
 @router.get("/{video_id}")

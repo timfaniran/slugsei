@@ -34,7 +34,8 @@ export const analyzeVideo = async (videoId) => {
             analysis: response.data.analysis || {}
         };
     } catch (error) {
-        handleError(error);
+        console.error("Analysis Error:", error.response?.data || error.message);
+        throw new Error(error.response?.data?.detail || 'Failed to analyze video. Please try again.');
     }
 };
 

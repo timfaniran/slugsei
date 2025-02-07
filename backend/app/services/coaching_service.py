@@ -6,7 +6,6 @@ from .playerData import PlayerData
 
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-# Load player data
 filePath = os.path.join(os.path.dirname(__file__), '../../datasets/2024-mlb-homeruns.csv')
 player_service = PlayerData(filePath)
 
@@ -30,7 +29,6 @@ def generate_coaching_feedback(video_id: str):
     if launch_angle is None or exit_velocity is None:
         raise ValueError(f"Incomplete analysis data for video ID: {video_id}")
 
-    # Find a relatively close matching player from the dataset
     closest_match = None
     smallest_diff = float('inf')
     for player_id, player_data in player_service.get_all_players().items():
@@ -43,7 +41,6 @@ def generate_coaching_feedback(video_id: str):
                 smallest_diff = total_diff
                 closest_match = player_data
         except ValueError:
-            # Skip players with invalid data
             continue
 
     if closest_match:
@@ -84,13 +81,44 @@ def generate_coaching_feedback(video_id: str):
     Structure your feedback as if giving **professional coaching advice to a serious player looking to improve.** Keep it **concise, structured, and reference-backed**.
     """
 
+    stats_explanation = """
+**Understanding Your Statistics:**
+
+1. **Barrel Zone:**
+   - The barrel zone shows the optimal combination of launch angle and exit velocity
+   - Blue line represents the ideal hitting zone
+   - Your swing (red dot) shows where your hit falls in relation to the optimal zone
+   - Optimal barrel zone: Launch angles between 8-32° with exit velocities above 95 mph
+
+2. **Exit Velocity:**
+   - Exit velocity is how fast the ball leaves your bat
+   - MLB average: ~88-89 mph
+   - Elite power hitters: 95+ mph
+   - Your exit velocity: {exit_velocity} mph
+   - Higher exit velocity typically results in better hitting outcomes
+
+3. **Launch Angle:**
+   - Launch angle is the vertical angle the ball leaves your bat
+   - Ground balls: Less than 10°
+   - Line drives: 10-25°
+   - Fly balls: 25-35°
+   - Pop-ups: Above 35°
+   - Your launch angle: {launch_angle}°
+   - Optimal range for hits: 8-32°
+
+These metrics together help determine the quality of contact and potential outcomes of your hits.
+""".format(exit_velocity=exit_velocity, launch_angle=launch_angle)
+
     try:
         model = genai.GenerativeModel("gemini-pro")
         response = model.generate_content(prompt)
 
+        complete_feedback = f"{response.text}\n\n{stats_explanation}"
+
         return {
             "video_id": video_id,
-            "feedback": response.text   
+            "feedback": complete_feedback,
+            "reference_video": player_video if player_video else None
         }
 
     except Exception as e:
@@ -113,9 +141,12 @@ def generate_coaching_feedback(video_id: str):
         fallback_feedback += f"\n- **Reference Player Video**: {player_video}\n"
         fallback_feedback += f"\n- **Outstanding Features**: {outstanding_features}\n"
 
+        complete_fallback = f"{fallback_feedback}\n\n{stats_explanation}"
+
         return {
             "video_id": video_id,
-            "feedback": fallback_feedback
+            "feedback": complete_fallback,
+            "reference_video": player_video if player_video else None
         }
 
 def ask_gemini(video_id: str, question: str) -> str:

@@ -4,11 +4,11 @@ import pandas as pd
 import seaborn as sns
 import io
 import os
+from pathlib import Path
 import uuid
 from google.cloud import storage
 from typing import Dict, Tuple, Optional
 
-# Constants
 BUCKET_NAME = "slugsei-baseball-coach-images"
 storage_client = storage.Client()
 
@@ -16,12 +16,21 @@ class MLBDataLoader:
     """Handles loading and preprocessing of MLB data"""
     @staticmethod
     def load_data() -> pd.DataFrame:
-        dataset_path = os.getenv("MLB_DATASET_PATH", "backend/datasets/2024-mlb-homeruns.csv")
-        df = pd.read_csv(dataset_path)
-        return df.dropna(subset=["ExitVelocity", "LaunchAngle"])
+        backend_dir = Path(__file__).parent.parent
+        default_path = backend_dir / "datasets" / "2024-mlb-homeruns.csv"
+        
+        dataset_path = os.getenv("MLB_DATASET_PATH", str(default_path))
+        
+        try:
+            df = pd.read_csv(dataset_path)
+            return df.dropna(subset=["ExitVelocity", "LaunchAngle"])
+        except Exception as e:
+            print(f"Error loading MLB data from {dataset_path}: {str(e)}")
+            raise ValueError(f"Failed to load MLB dataset: {str(e)}")
 
     @staticmethod
     def get_statistics(df: pd.DataFrame) -> Tuple[float, float, float, float]:
+        """Calculate key statistics from the dataset"""
         ev_mean = df["ExitVelocity"].mean()
         ev_mode = df["ExitVelocity"].mode()[0]
         la_mean = df["LaunchAngle"].mean()
@@ -36,6 +45,7 @@ class ChartGenerator:
         self.mlb_data = MLBDataLoader.load_data()
 
     def create_barrel_zone(self, ax: plt.Axes) -> None:
+        """Create barrel zone visualization"""
         ax.set_title("Barrel Zone")
         ax.set_xlabel("Launch Angle (degrees)")
         ax.set_ylabel("Exit Velocity (mph)")
@@ -44,6 +54,7 @@ class ChartGenerator:
         ax.legend()
 
     def create_distribution_plot(self, ax: plt.Axes, metric: str, color: str) -> None:
+        """Create distribution plot for either exit velocity or launch angle"""
         data = self.mlb_data[metric]
         mean_val = data.mean()
         user_val = self.exit_velocity if metric == "ExitVelocity" else self.launch_angle
@@ -62,6 +73,7 @@ class ChartGenerator:
         ax.legend()
 
     def generate_single_chart(self, chart_type: str) -> io.BytesIO:
+        """Generate a single chart based on the specified type"""
         fig, ax = plt.subplots(figsize=(6, 6))
         
         if chart_type == "barrel_zone":
@@ -75,12 +87,13 @@ class ChartGenerator:
 
         plt.grid(True)
         image_stream = io.BytesIO()
-        plt.savefig(image_stream, format="png")
+        plt.savefig(image_stream, format="png", dpi=300, bbox_inches="tight")
         image_stream.seek(0)
         plt.close()
         return image_stream
 
     def create_analysis_plots(self) -> io.BytesIO:
+        """Create combined analysis plots"""
         sns.set_style("whitegrid")
         fig, axes = plt.subplots(1, 2, figsize=(14, 5))
         
@@ -111,14 +124,12 @@ def generate_and_upload_images(video_id: str, launch_angle: float, exit_velocity
         uploader = GCSUploader()
         images = {}
 
-        # Generate and upload individual charts
         for chart_type in ["barrel_zone", "exit_velocity", "launch_angle"]:
             stream = chart_generator.generate_single_chart(chart_type)
             images[chart_type] = uploader.upload_image(stream, chart_type, video_id)
 
-        # Generate and upload performance analysis
-        analysis_stream = chart_generator.create_analysis_plots()
-        images["performance_analysis"] = uploader.upload_image(analysis_stream, "performance_analysis", video_id)
+        # analysis_stream = chart_generator.create_analysis_plots()
+        # images["performance_analysis"] = uploader.upload_image(analysis_stream, "performance_analysis", video_id)
 
         return images
 
