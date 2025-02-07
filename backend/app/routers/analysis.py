@@ -28,11 +28,9 @@ class QuestionRequest(BaseModel):
 def ask_ai(request: QuestionRequest):
     """Handles AI-generated responses based on user questions."""
     try:
-        # Validate inputs
         if not request.video_id or not request.question:
             raise HTTPException(status_code=400, detail="Invalid request. Video ID and question are required.")
 
-        # Send question to Gemini API
         response = ask_gemini(request.video_id, request.question)
         return {"answer": response}
     except ValueError as e:
@@ -44,20 +42,25 @@ def ask_ai(request: QuestionRequest):
 def process_video(request: AnalysisRequest):
     """Processes the video and generates feedback."""
     try:
-        # Analyze the video
         result = analyze_video(request.video_id)
-
+        
         if not result:
             raise HTTPException(status_code=404, detail="No analysis data found.")
 
-        # Generate and upload analysis images
+        launch_angle = float(result.get("launch_angle", 0))
+        exit_velocity = float(result.get("exit_velocity", 0))
+        
         images = generate_and_upload_images(
             video_id=request.video_id,
-            launch_angle=result.get("launch_angle"),
-            exit_velocity=result.get("exit_velocity"),
+            launch_angle=launch_angle,
+            exit_velocity=exit_velocity
         )
 
-        return {"video_id": request.video_id, "analysis": result, "images": images}
+        return {
+            "video_id": request.video_id,
+            "analysis": result,
+            "images": images
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing video: {str(e)}")
 

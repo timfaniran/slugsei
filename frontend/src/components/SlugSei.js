@@ -65,21 +65,24 @@ const SlugSeiPage = () => {
         const analysisResponse = await analyzeVideo(videoId);
         const feedbackResponse = await getFeedback(videoId);
 
-        const feedback = feedbackResponse?.feedback?.feedback;
-        if (feedback && typeof feedback === 'string') {
-          setChatMessages((prev) => [
-            ...prev,
-            { sender: 'AI', message: feedback },
-          ]);
-        } else {
-          setChatMessages((prev) => [
-            ...prev,
-            { sender: 'AI', message: 'No feedback available at this time.' },
-          ]);
-        }
-
         if (analysisResponse.images) {
           setAnalysisImages(analysisResponse.images);
+        }
+
+        const feedback = feedbackResponse?.feedback?.feedback;
+        if (feedback && typeof feedback === 'string') {
+          setChatMessages((prev) => [...prev, { sender: 'AI', message: feedback }]);
+        }
+
+        if (analysisResponse.analysis) {
+          const { launch_angle, exit_velocity } = analysisResponse.analysis;
+          setChatMessages((prev) => [
+            ...prev,
+            { 
+              sender: 'AI', 
+              message: `Analysis Results:\nLaunch Angle: ${launch_angle.toFixed(1)}°\nExit Velocity: ${exit_velocity.toFixed(1)} mph`
+            },
+          ]);
         }
       } catch (error) {
         setChatMessages((prev) => [

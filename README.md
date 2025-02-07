@@ -1,12 +1,32 @@
-# google-cloud-mlb
+# SlugSeiAI
 
 ## Inspiration
 
-Baseball is a game of precision, timing, and technique, yet not everyone has access to top-tier coaching. Whether you’re a beginner learning the fundamentals or an advanced player refining your swing, personalized feedback can make all the difference. We wanted to bridge the gap between professional coaching and everyday players by harnessing AI to provide real-time, data-driven insights.
+Baseball is a game of precision, but not everyone has access to elite coaching. What if you could see exactly how to improve your swing, down to the smallest detail? 
+
+With SlugSei, players at any level can unlock their potential using real-time data like launch angle (optimized at 10-30 degrees), exit velocity (elite players average 95+ mph), and bat speed (just 1-2 mph faster can add 10-15 feet to your hits). Studies show players using data-driven coaching improve batting averages by up to 20% and gain 5-7 mph in exit velocity in just months. It’s not just practice, it’s practicing smarter. SlugSei makes pro-level insights accessible, so user can see measurable results faster.
 
 ## What it does
 
-Slugger Sensei is an AI-powered baseball coach that analyzes a player’s swing mechanics through video input and provides instant feedback to improve their hitting performance. Using computer vision and machine learning, it tracks key metrics such as bat speed, stance, hand positioning, and follow-through, offering personalized recommendations for better accuracy, power, and consistency. Players can upload their swings, compare them to professional athletes, and receive targeted drills to enhance their game.
+SlugSei is an AI-powered baseball coach that analyzes your swing mechanics through video and delivers instant, actionable feedback to elevate your hitting performance. Using advanced computer vision and machine learning, it tracks and measures critical metrics to help you improve faster and smarter.
+
+Key Features
+
+- Swing Analysis: Tracks bat speed, stance, hand positioning, follow-through, launch angle, and exit velocity.
+
+- Instant Feedback: Provides real-time insights on your swing mechanics and areas for improvement.
+
+- Performance Tracking: Monitors your progress over time with detailed metrics and trends.
+
+- Personalized Coaching: Offers tailored recommendations and drills based on your unique swing data.
+
+- Pro Comparisons: Compare your swing mechanics to professional athletes for benchmark insights.
+
+- Drill Library: Access customized drills designed to target specific weaknesses and refine your skills.
+
+- Data Storage: Save and review your swing history to track improvement and set goals.
+
+SlugSei turns raw data into actionable steps, helping you practice smarter and see measurable results faster.
 
 ## How we built it
 
