@@ -117,3 +117,14 @@ def generate_coaching_feedback(video_id: str):
             "video_id": video_id,
             "feedback": fallback_feedback
         }
+
+def ask_gemini(video_id: str, question: str) -> str:
+    """Uses Gemini API to provide AI-based coaching insights."""
+    prompt = f"Video ID: {video_id}\nQuestion: {question}\nRespond as a professional baseball coach with references to biomechanics, MLB guidelines, and professional coaching techniques."
+    
+    try:
+        model = genai.GenerativeModel("gemini-pro")
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"An error occurred while processing your question: {str(e)}"

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Typography, Card, Button, TextField } from '@mui/material';
 import Header from './Header';
+import ReactMarkdown from 'react-markdown';
+import { uploadVideo, analyzeVideo, getFeedback, askAI } from '../api/api';
 
 const buttonStyles = {
   backgroundColor: '#BA0C2F',
@@ -17,45 +19,107 @@ const buttonStyles = {
 };
 
 const SlugSeiPage = () => {
-  const [video, setVideo] = useState(null); // State for uploaded video
-  const [showStats, setShowStats] = useState(false); // State to control stats visibility
+  const [video, setVideo] = useState(null);
+  const [videoId, setVideoId] = useState(null);
+  const [analysisImages, setAnalysisImages] = useState(null);
   const [chatMessages, setChatMessages] = useState([
     { sender: 'AI', message: 'Welcome! How can I assist you with your baseball coaching today?' },
   ]);
   const [inputMessage, setInputMessage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const handleVideoUpload = (e) => {
+  const handleVideoUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      setIsUploading(true);
       const videoURL = URL.createObjectURL(file);
       setVideo(videoURL);
-      setShowStats(false); // Reset stats visibility on new upload
+
+      try {
+        const response = await uploadVideo(file);
+        setVideoId(response.video_id);
+        setChatMessages((prev) => [
+          ...prev,
+          { sender: 'AI', message: 'Your video has been uploaded successfully. Please click "Analyze Video" to proceed.' },
+        ]);
+      } catch (error) {
+        setChatMessages((prev) => [
+          ...prev,
+          { sender: 'AI', message: 'Failed to upload video. Please try again.' },
+        ]);
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
-  const handleAnalyzeVideo = () => {
-    if (video) {
-      setShowStats(true);
-    }
-  };
-
-  const handleSendMessage = () => {
-    if (inputMessage.trim()) {
+  const handleAnalyzeVideo = async () => {
+    if (videoId) {
+      setIsAnalyzing(true);
       setChatMessages((prev) => [
         ...prev,
-        { sender: 'User', message: inputMessage },
-        { sender: 'AI', message: "That's great! Let's dive deeper into your game stats." },
+        { sender: 'AI', message: 'Analyzing your video... Stay tuned for coaching feedback.' },
+      ]);
+      try {
+        const analysisResponse = await analyzeVideo(videoId);
+        const feedbackResponse = await getFeedback(videoId);
+
+        const feedback = feedbackResponse?.feedback?.feedback;
+        if (feedback && typeof feedback === 'string') {
+          setChatMessages((prev) => [
+            ...prev,
+            { sender: 'AI', message: feedback },
+          ]);
+        } else {
+          setChatMessages((prev) => [
+            ...prev,
+            { sender: 'AI', message: 'No feedback available at this time.' },
+          ]);
+        }
+
+        if (analysisResponse.images) {
+          setAnalysisImages(analysisResponse.images);
+        }
+      } catch (error) {
+        setChatMessages((prev) => [
+          ...prev,
+          { sender: 'AI', message: 'Error analyzing video. Please try again.' },
+        ]);
+      } finally {
+        setIsAnalyzing(false);
+      }
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (inputMessage.trim()) {
+      const userMessage = inputMessage;
+      setChatMessages((prev) => [
+        ...prev,
+        { sender: 'User', message: userMessage },
       ]);
       setInputMessage('');
+
+      try {
+        const aiResponse = await askAI(videoId, userMessage);
+        const aiMessage = aiResponse?.answer || 'Sorry, I could not process your question. Please try again.';
+        setChatMessages((prev) => [
+          ...prev,
+          { sender: 'AI', message: aiMessage },
+        ]);
+      } catch (error) {
+        setChatMessages((prev) => [
+          ...prev,
+          { sender: 'AI', message: 'Error processing your question. Please try again later.' },
+        ]);
+      }
     }
   };
 
   return (
     <>
-      {/* Header */}
       <Header />
-
-      {/* Main Content */}
       <Box
         sx={{
           display: 'flex',
@@ -64,11 +128,10 @@ const SlugSeiPage = () => {
           px: 4,
           py: 3,
           backgroundColor: '#F4F4F4',
-          height: 'calc(100vh - 80px)', // Adjust height considering the header
+          height: 'calc(100vh - 80px)',
           overflow: 'auto',
         }}
       >
-        {/* Video Upload Section */}
         <Box
           sx={{
             flex: 2,
@@ -114,7 +177,7 @@ const SlugSeiPage = () => {
             <Button
               variant="contained"
               component="label"
-              sx={buttonStyles}
+              sx={{ ...buttonStyles, ...(isUploading && { opacity: 0.5, pointerEvents: 'none' }) }}
             >
               Upload Video
               <input
@@ -128,14 +191,48 @@ const SlugSeiPage = () => {
               variant="contained"
               sx={buttonStyles}
               onClick={handleAnalyzeVideo}
-              disabled={!video}
+              disabled={!videoId || isAnalyzing}
             >
               Analyze Video
             </Button>
           </Box>
+          {analysisImages && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                px: 2,
+                py: 4,
+                gap: 2,
+              }}
+            >
+              {Object.entries(analysisImages).map(([key, url]) => (
+                <Card
+                  key={key}
+                  sx={{
+                    flex: 1,
+                    backgroundColor: '#FEE8D4',
+                    padding: '1rem',
+                    borderRadius: '12px',
+                    textAlign: 'center',
+                    boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontFamily: "'Roboto', sans-serif",
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {key.replace('_', ' ').toUpperCase()}
+                  </Typography>
+                  <img src={url} alt={key} style={{ maxWidth: '100%', borderRadius: '8px' }} />
+                </Card>
+              ))}
+            </Box>
+          )}
         </Box>
-
-        {/* AI Assistant Coaching Chatbot */}
         <Box
           sx={{
             flex: 1,
@@ -149,7 +246,6 @@ const SlugSeiPage = () => {
             height: '90%',
           }}
         >
-          {/* Chat Bubbles */}
           <Box
             sx={{
               flex: 1,
@@ -180,21 +276,11 @@ const SlugSeiPage = () => {
                     boxShadow: '0px 2px 5px rgba(0, 0, 0, 0.1)',
                   }}
                 >
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontFamily: "'Roboto', sans-serif",
-                      fontSize: '1rem',
-                    }}
-                  >
-                    {msg.message}
-                  </Typography>
+                  <ReactMarkdown>{msg.message}</ReactMarkdown>
                 </Box>
               </Box>
             ))}
           </Box>
-
-          {/* Input Section */}
           <Box sx={{ display: 'flex', gap: 1 }}>
             <TextField
               variant="outlined"
@@ -214,43 +300,6 @@ const SlugSeiPage = () => {
           </Box>
         </Box>
       </Box>
-
-      {/* Stat Analyze Section */}
-      {showStats && (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            px: 4,
-            py: 4,
-            gap: 4,
-          }}
-        >
-          {[1, 2, 3].map((_, idx) => (
-            <Card
-              key={idx}
-              sx={{
-                flex: 1,
-                backgroundColor: '#FEE8D4',
-                padding: '1.5rem',
-                borderRadius: '12px',
-                textAlign: 'center',
-                boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{
-                  fontFamily: "'Roboto', sans-serif",
-                  fontWeight: 'bold',
-                }}
-              >
-                Stat Analyze
-              </Typography>
-            </Card>
-          ))}
-        </Box>
-      )}
     </>
   );
 };
