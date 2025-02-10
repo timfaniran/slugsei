@@ -31,15 +31,14 @@ name: 'Build and Deploy to Cloud Run'
 
 on:
   push:
-    branches:
-      - '"main"'
+    branches: [ "main" ]
 
 env:
-  PROJECT_ID: 'poetic-planet-449502-i0'
-  GAR_LOCATION: 'us-central1'
-  GAR_NAME: 'ghaction'
-  REGION: 'us-central1'
-  SERVICE: 'slugger-sensei-app' 
+  PROJECT_ID: poetic-planet-449502-i0
+  GAR_LOCATION: us-central1
+  GAR_NAME: ghaction
+  REGION: us-central1
+  SERVICE: virtual-baseball-coach
 
 jobs:
   deploy:
