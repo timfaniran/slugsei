@@ -72,10 +72,11 @@ jobs:
           gcloud auth configure-docker "${{ env.REGION }}-docker.pkg.dev"
 
       - name: 'Build and Push Container'
-        run: |-
-          DOCKER_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ github.sha }}"
-          docker build --tag "${DOCKER_TAG}" .
+        run: |
+          DOCKER_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_NAME }}/${{ env.SERVICE }}:${{ github.sha }}"
+          docker build -t "${DOCKER_TAG}" ./slugsei/backend  # Specify the correct path
           docker push "${DOCKER_TAG}"
+          
       - name: 'Deploy to Cloud Run'
 
         # END - Docker auth and build
