@@ -5,7 +5,7 @@ FROM python:3.11
 WORKDIR /backend
 
 # Copy application files from backend directory
-COPY backend backend/
+COPY . .
 # COPY app/config.py .
 # COPY requirements.txt .
 
