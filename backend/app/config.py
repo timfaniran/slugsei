@@ -6,7 +6,7 @@ load_dotenv()
 
 BUCKET_NAME = "slugsei-baseball-coach-videos"
 
-GCP_PROJECT_ID = os.getenv("GCP_PROJECT")
+GCP_PROJECT_ID = os.getenv("poetic-planet-449502-i0")
 if not GCP_PROJECT_ID:
     raise ValueError("Missing GCP_PROJECT environment variable.") 
 
