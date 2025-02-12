@@ -2,12 +2,12 @@
 FROM python:3.11
 
 # Set working directory inside the container
-WORKDIR /app
+WORKDIR /backend
 
 # Copy application files from backend directory
-COPY app app/
-COPY app/config.py .
-COPY requirements.txt .
+COPY backend backend/
+# COPY app/config.py .
+# COPY requirements.txt .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
