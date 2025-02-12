@@ -69,7 +69,7 @@ jobs:
       # If you already have a container image, you can omit these steps.
       - name: 'Docker Auth'
         run: |-
-          gcloud auth configure-docker "${{ env.REGION }}-docker.pkg.dev"
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
       - name: 'Build and Push Container'
         run: |
@@ -89,7 +89,6 @@ jobs:
 
           image: '${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_NAME }}/${{ env.SERVICE }}:${{ github.sha }}'
       # If required, use the Cloud Run URL output in later steps
-      - name: 'Show output'
-        run: |2-
-
-          echo ${{ steps.deploy.outputs.url }}
+      # Log Cloud Run service URL
+      - name: 'Show Deployed URL'
+        run: gcloud run services describe ${{ env.SERVICE }} --region=${{ env.REGION }} --format='value(status.url)'
