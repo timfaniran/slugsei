@@ -41,7 +41,7 @@ jobs:
           
           # OR using a JSON key stored in GitHub secrets:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
-          service_account: 'github-action@your-gcp-project-id.iam.gserviceaccount.com'
+          service_account: 'github-action@poetic-planet-449502-i0.iam.gserviceaccount.com'
 
       # 3. Configure Docker to push to Artifact Registry
       - name: 'Docker Auth'
